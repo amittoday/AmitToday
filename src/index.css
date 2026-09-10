@@ -1,0 +1,1340 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@import "./styles/printInvoice.css";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+}
+
+body {
+  @apply bg-[#F2F4F7] text-slate-800 antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-200 rounded-full hover:bg-gray-300 transition-colors;
+}
+
+/* Specific high-fidelity printing rules for Dashboard & Document Vault views */
+@media print {
+  @page {
+    size: auto;
+    margin: 15mm; /* Automatically strips standard browser-supplied URL and page boundaries headers */
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0c0f17 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide app navigation sidebar, headers, footer, search grids, action buttons, modals and tabs */
+  nav, 
+  aside, 
+  footer, 
+  header,
+  #user-sidebar,
+  #admin-sidebar,
+  #app-navbar,
+  #app-footer,
+  .print\:hidden,
+  .no-print,
+  button, 
+  select, 
+  input, 
+  iframe,
+  .border-dashed {
+    display: none !important;
+  }
+
+  /* Make main dashboard content layout span the complete print screen bounds */
+  main,
+  .container,
+  .print-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Formatting lists, cards, and data listings nicely */
+  .grid {
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .card, 
+  .p-6, 
+  .p-8 {
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    margin-bottom: 1.5rem !important;
+    page-break-inside: avoid !important;
+  }
+  
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto !important;
+  }
+
+  td, th {
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 8px !important;
+  }
+}
+
+/* Notary Module Container Visual Watermark & Official Legal Certificate Layout */
+.notary-module-container {
+  position: relative;
+}
+
+.notary-module-container::after {
+  content: attr(data-watermark);
+  position: absolute;
+  top: 48%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-28deg);
+  font-size: clamp(1.1rem, 2.4vw, 2.2rem);
+  font-weight: 900;
+  color: rgba(10, 25, 47, 0.05);
+  letter-spacing: 0.12em;
+  pointer-events: none;
+  z-index: 0;
+  white-space: nowrap;
+  text-transform: uppercase;
+  user-select: none;
+  text-align: center;
+}
+
+/* Slide and Fade Animation for Notary Application Status Updates */
+@keyframes slideAndFade {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.98);
+  }
+  60% {
+    opacity: 0.85;
+    transform: translateY(-2px) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.notary-module-container .notary-application-record,
+.module-container .notary-application-record,
+.notary-application-record {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideAndFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) ease-out forwards;
+}
+
+.notary-module-container .notary-application-record[data-status],
+.module-container .notary-application-record[data-status],
+.notary-application-record[data-status] {
+  transition: background-color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, transform 0.4s ease, opacity 0.4s ease;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  .notary-module-container {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .notary-module-container::after {
+    content: attr(data-watermark) !important;
+    color: rgba(0, 0, 0, 0.12) !important;
+    font-size: 1.6rem !important;
+    display: block !important;
+    letter-spacing: 0.08em !important;
+    transform: translate(-50%, -50%) rotate(-28deg) !important;
+  }
+
+  .notary-application-record {
+    border: 2px solid #0f172a !important;
+    padding: 12mm !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    font-family: "Georgia", "Times New Roman", serif !important;
+  }
+
+  .notary-application-record button,
+  .notary-application-record input,
+  .notary-application-record select,
+  .notary-application-record .no-print,
+  .no-print {
+    display: none !important;
+  }
+}
+
+@keyframes qrScanLine {
+  0% {
+    top: 5%;
+  }
+  50% {
+    top: 95%;
+  }
+  100% {
+    top: 5%;
+  }
+}
+
+@utility animate-qr-scan-line {
+  animation: qrScanLine 2s infinite ease-in-out;
+}
+
+@keyframes pulseSubtle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(0.97);
+  }
+}
+
+@utility animate-pulse-subtle {
+  animation: pulseSubtle 3s infinite ease-in-out;
+}
+
+/* Print CSS overrides for clean A4 Document Preview Summary Sheet */
+@media print {
+  /* Hide all layout wrappers, headers, footers, buttons, and interaction panels */
+  header, footer, nav, aside, [role="navigation"], .sidebar, #sidebar, .no-print, .noprint,
+  button, input, select, textarea, .toast, [role="status"], .bg-black\/85, .bg-indigo-50\/50 {
+    display: none !important;
+  }
+
+  /* Reset global layout for physical page alignment */
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 210mm;
+    height: 297mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Unravel modal positioning so it prints inline at the top of the A4 layout */
+  #file-preview-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    z-index: auto !important;
+  }
+
+  /* Force document container to assume standard A4 card layout dimensions */
+  #document-preview-modal-fallback {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 20mm !important; /* Elegant 20mm margins for print */
+    margin: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+  }
+
+  /* Direct text coloring and custom high contrast rules */
+  h1, h2, h3, h4, h5, h6, p, span, strong, b, div, td, th {
+    color: #000000 !important;
+  }
+
+  /* Target only preview pdf canvas to center and fit nicely in A4 */
+  #document-preview-modal-fallback > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+  }
+
+  #preview-pdf-canvas {
+    transform: scale(1) !important;
+    transform-origin: top center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 290mm !important;
+    border: 2px solid #e2e8f0 !important;
+    padding: 15mm !important;
+    margin: 0 auto !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    position: relative !important;
+  }
+}
+
+/* Dedicated printer-friendly styling for order certificates and receipts */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 20mm !important; /* Explicit 20mm standard A4 page margins */
+  }
+
+  body {
+    counter-reset: page 1 pages 1 summary-page 1 summary-pages 1 certificate-page;
+  }
+
+  /* Strict hide of all peripheral UI, site-wide navigation, sidebars, header/footer elements outside certificate context */
+  body:has(.order-certificate-container) *:not(.order-certificate-container):not(.order-certificate-container *):not(.print-only-block):not(.print-only-block *) {
+    display: none !important;
+  }
+
+  /* Explicitly hide site-wide navigation components, sidebars, header/footer elements not part of certificate or summary context */
+  header,
+  footer,
+  nav,
+  aside,
+  #app-navbar,
+  #app-footer,
+  #user-sidebar,
+  #admin-sidebar,
+  .site-navigation,
+  .site-header,
+  .site-footer,
+  .sidebar,
+  .no-print,
+  .noprint,
+  button,
+  input:not([type="checkbox"]),
+  select,
+  textarea,
+  .toast,
+  [role="status"],
+  [role="navigation"],
+  #mobile-menu-toggle-btn,
+  .bg-black\/85,
+  .bg-black\/80,
+  .bg-black\/60,
+  .backdrop-blur-md,
+  .backdrop-blur-sm,
+  .print\:hidden,
+  .floating-print-btn {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    width: 0 !important;
+    border: none !important;
+  }
+
+  /* Force document views to print full width, removing borders, gaps, shadows */
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+    box-sizing: border-box !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Order Summary specifically: Seamless multi-page flow strictly within 20mm margins */
+  .order-summary-print-container,
+  .printable-order-summary,
+  #printable-order-summary-container,
+  .printable-dossier-table {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 170mm !important; /* Strictly fits within 210mm A4 width minus 2x 20mm page margins */
+    margin: 0 auto !important;
+    padding: 0 0 10mm 0 !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: grayscale(100%) !important;
+    border: none !important;
+    display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    page-break-after: auto !important;
+    box-sizing: border-box !important;
+    font-family: "Times New Roman", Times, serif !important;
+    text-rendering: optimizeLegibility !important;
+    -webkit-font-smoothing: antialiased !important;
+    counter-increment: summary-page;
+  }
+
+  /* Eliminate non-essential UI elements inside #printable-order-summary-container */
+  #printable-order-summary-container button,
+  #printable-order-summary-container input:not([type="checkbox"]),
+  #printable-order-summary-container select,
+  #printable-order-summary-container textarea,
+  #printable-order-summary-container .no-print,
+  #printable-order-summary-container .noprint,
+  #printable-order-summary-container .print\:hidden,
+  #printable-order-summary-container .interactive-control,
+  #printable-order-summary-container [role="tooltip"],
+  #printable-order-summary-container .close-preview-btn {
+    display: none !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+
+  /* Dynamic persistent page header for #printable-order-summary-container during print */
+  #printable-order-summary-container::before {
+    content: "AMIT ONLINE SERVICES • CONSOLIDATED ORDER & REVENUE SUMMARY • " attr(data-print-date) !important;
+    display: block !important;
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 11pt !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    color: #000000 !important;
+    border-bottom: 2px solid #000000 !important;
+    padding-bottom: 10mm !important;
+    margin-bottom: 4mm !important;
+    width: 100% !important;
+    text-align: left !important;
+    box-sizing: border-box !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Dynamic print-only CSS counter for #printable-order-summary-container displaying 'Page X of Y' and verified document footer at bottom */
+  #printable-order-summary-container::after {
+    content: "Page " counter(summary-page) " of " counter(summary-pages) " • VERIFIED OFFICIAL DOCUMENT" !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    display: block !important;
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 8pt !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.06em !important;
+    color: #000000 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    line-height: 1 !important;
+    text-align: right !important;
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    z-index: 9999 !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Strict high-contrast black-on-white & shadow elimination rules for #printable-order-summary-container */
+  #printable-order-summary-container *,
+  #printable-order-summary-container table,
+  #printable-order-summary-container tr,
+  #printable-order-summary-container th,
+  #printable-order-summary-container td,
+  #printable-order-summary-container div,
+  #printable-order-summary-container span,
+  #printable-order-summary-container p,
+  #printable-order-summary-container h1,
+  #printable-order-summary-container h2,
+  #printable-order-summary-container h3,
+  #printable-order-summary-container h4,
+  #printable-order-summary-container h5,
+  #printable-order-summary-container h6,
+  #printable-order-summary-container strong {
+    background-color: transparent !important;
+    background-image: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+    font-family: "Times New Roman", Times, serif !important;
+    text-rendering: optimizeLegibility !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Target all tr and div elements within container to prevent splitting awkwardly across pages */
+  #printable-order-summary-container tr,
+  #printable-order-summary-container div {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* Table container overflow and display handling to prevent clipping */
+  #printable-order-summary-container .table-responsive,
+  #printable-order-summary-container .overflow-x-auto,
+  #printable-order-summary-container .table-container {
+    overflow-x: auto !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .order-summary-print-container table,
+  .printable-order-summary table,
+  #printable-order-summary-container table,
+  .printable-dossier-table table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    border: 1px solid #000000 !important;
+    margin-top: 3mm !important;
+    margin-bottom: 3mm !important;
+    font-family: "Times New Roman", Times, serif !important;
+    box-sizing: border-box !important;
+  }
+
+  .order-summary-print-container thead,
+  .printable-order-summary thead,
+  #printable-order-summary-container thead,
+  .printable-dossier-table thead {
+    display: table-header-group !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .order-summary-print-container tbody,
+  .printable-order-summary tbody,
+  #printable-order-summary-container tbody,
+  .printable-dossier-table tbody {
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+  }
+
+  .order-summary-print-container tr,
+  .printable-order-summary tr,
+  #printable-order-summary-container tr,
+  #printable-order-summary-container .order-row,
+  .printable-dossier-table tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: auto !important;
+    border-bottom: 0.5px solid #e2e8f0 !important;
+  }
+
+  /* Standardized 1px solid black border and print styling for headers */
+  .order-summary-print-container th,
+  .printable-order-summary th,
+  #printable-order-summary-container th,
+  #printable-order-summary-container .section-header {
+    border: 1px solid #000000 !important;
+    padding: 6px 10px !important;
+    line-height: 1.5 !important;
+    vertical-align: middle !important;
+    font-size: 9pt !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.02em !important;
+    color: #000000 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    font-family: "Times New Roman", Times, serif !important;
+    word-break: break-word !important;
+    word-wrap: break-word !important;
+    box-sizing: border-box !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Standardized 1px solid black border, 6px 10px cell padding, fixed 9pt font size, and 0.02em letter-spacing for data cells */
+  .order-summary-print-container td,
+  .printable-order-summary td,
+  #printable-order-summary-container td {
+    border: 1px solid #000000 !important;
+    padding: 6px 10px !important;
+    line-height: 1.5 !important;
+    vertical-align: middle !important;
+    font-size: 9pt !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    color: #000000 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    font-family: "Times New Roman", Times, serif !important;
+    word-break: break-word !important;
+    word-wrap: break-word !important;
+    box-sizing: border-box !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  /* Zebra striping for alternate table rows within #printable-order-summary-container to enhance readability */
+  #printable-order-summary-container tbody tr:nth-child(even),
+  #printable-order-summary-container table tbody tr:nth-child(even),
+  #printable-order-summary-container .order-row:nth-child(even) {
+    background-color: #f8fafc !important;
+    background: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #printable-order-summary-container tbody tr:nth-child(even) td,
+  #printable-order-summary-container table tbody tr:nth-child(even) td {
+    background-color: #f8fafc !important;
+    background: #f8fafc !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Print-only audit footer displaying date & time for document tracking compliance */
+  #printable-order-summary-container .summary-footer-signature::after,
+  #printable-order-summary-container .print-audit-footer::after,
+  #printable-order-summary-container[data-print-date]::after {
+    content: "Printed on: " attr(data-print-date) !important;
+    display: block !important;
+    font-family: "Times New Roman", Times, serif !important;
+    font-size: 7.5pt !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.02em !important;
+    color: #000000 !important;
+    text-align: left !important;
+    margin-top: 3mm !important;
+    padding-top: 1.5mm !important;
+    border-top: 1px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    text-rendering: optimizeLegibility !important;
+  }
+
+  .order-summary-print-container .summary-metric-card,
+  .order-summary-print-container .summary-footer-signature,
+  .printable-order-summary .summary-metric-card,
+  .printable-order-summary .summary-footer-signature,
+  #printable-order-summary-container .summary-metric-card,
+  #printable-order-summary-container .summary-footer-signature {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    border: 1px solid #000000 !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .order-certificate-container {
+    position: relative !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 170mm !important; /* 210mm A4 width minus 2x 20mm page margins */
+    min-height: 257mm !important; /* 297mm A4 height minus 2x 20mm page margins */
+    max-height: 257mm !important; /* Forces strict single-page boundary on standard hardware */
+    height: 257mm !important;
+    aspect-ratio: 210 / 297 !important; /* Strict A4 aspect ratio */
+    margin: 0 auto !important;
+    padding: 6mm 7mm !important;
+    box-sizing: border-box !important;
+    box-shadow: none !important;
+    border: 2px solid #0f172a !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    transform: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: always !important;
+    overflow: hidden !important;
+    font-size: 8.5pt !important;
+    line-height: 1.3 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+    font-smooth: always !important;
+  }
+
+  /* Header-to-Footer Scaling & Elastic Spacing to Prevent Hardware Text Cut-Off */
+  .order-certificate-container > div.relative.z-10.space-y-8,
+  .order-certificate-container .certificate-body-content {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-evenly !important;
+    min-height: 0 !important;
+  }
+
+  .order-certificate-container .space-y-8 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 2.5mm !important;
+  }
+  .order-certificate-container .space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 2mm !important;
+  }
+  .order-certificate-container .space-y-4 > :not([hidden]) ~ :not([hidden]),
+  .order-certificate-container .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.5mm !important;
+  }
+  .order-certificate-container .space-y-2 > :not([hidden]) ~ :not([hidden]),
+  .order-certificate-container .space-y-1 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1mm !important;
+  }
+
+  .order-certificate-container .mt-12,
+  .order-certificate-container .mt-8,
+  .order-certificate-container .mt-6 {
+    margin-top: 2.5mm !important;
+  }
+
+  .order-certificate-container .p-6,
+  .order-certificate-container .p-8,
+  .order-certificate-container .p-12 {
+    padding: 2.5mm 3.5mm !important;
+  }
+
+  .order-certificate-container .pt-6 {
+    padding-top: 2mm !important;
+  }
+
+  .order-certificate-container .pb-3,
+  .order-certificate-container .pb-4 {
+    padding-bottom: 1.5mm !important;
+  }
+
+  .order-certificate-container .p-3 {
+    padding: 1.5mm 2.5mm !important;
+  }
+
+  .order-certificate-container .p-2 {
+    padding: 1mm 1.5mm !important;
+  }
+
+  /* Inner elements font & line height proportional scaling */
+  .order-certificate-container h5 {
+    font-size: 8pt !important;
+    line-height: 1.2 !important;
+  }
+  .order-certificate-container h6 {
+    font-size: 7.5pt !important;
+    line-height: 1.2 !important;
+  }
+  .order-certificate-container p {
+    font-size: 7.8pt !important;
+    line-height: 1.3 !important;
+  }
+  .order-certificate-container strong {
+    font-size: 8.2pt !important;
+  }
+  .order-certificate-container span {
+    font-size: 7.5pt !important;
+  }
+
+  /* Corner marks & decorative borders scaling */
+  .order-certificate-container .inset-4 {
+    inset: 2mm !important;
+  }
+  .order-certificate-container .inset-6 {
+    inset: 3.5mm !important;
+  }
+
+  /* Badge and emblem scaling */
+  .order-certificate-container .w-16.h-16 {
+    width: 34px !important;
+    height: 34px !important;
+  }
+  .order-certificate-container .w-16.h-16 svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Footer and Signature Anchoring */
+  .order-certificate-container > div:last-child {
+    flex-shrink: 0 !important;
+    border-top: 1.5px solid #0f172a !important;
+    padding-top: 2.5mm !important;
+    margin-top: auto !important;
+  }
+
+  /* 300 DPI High-Resolution text and vector graphics clarity */
+  .order-certificate-container,
+  .order-certificate-container * {
+    box-sizing: border-box !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+    font-smooth: always !important;
+    color: #000000 !important;
+  }
+
+  /* High-resolution rendering for logos, barcodes, QR stamps, vector emblems */
+  .order-certificate-container img,
+  .order-certificate-container canvas,
+  .order-certificate-container svg {
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: crisp-edges !important;
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Dedicated page header with document title and current date for certificate view */
+  .order-certificate-print-header,
+  .order-certificate-container .order-certificate-print-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding-bottom: 3mm !important;
+    margin-bottom: 4mm !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+    font-size: 8pt !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08em !important;
+    page-break-inside: avoid !important;
+    width: 100% !important;
+  }
+
+  /* Inject faint, diagonal 'AOS CERTIFIED' text watermark across background during print jobs */
+  .order-certificate-container::before {
+    content: "AOS CERTIFIED";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 4.5rem;
+    font-weight: 900;
+    color: rgba(15, 23, 42, 0.04) !important;
+    letter-spacing: 0.25em;
+    pointer-events: none;
+    z-index: 0;
+    white-space: nowrap;
+    text-transform: uppercase;
+  }
+
+  /* High-resolution 'AOS' branding stamp at top-right corner, visible only during print */
+  .order-certificate-container::after {
+    content: "AOS OFFICIAL ★ VERIFIED";
+    position: absolute;
+    top: 4mm;
+    right: 4mm;
+    padding: 3px 7px;
+    border: 1.5px solid #0f172a;
+    border-radius: 4px;
+    font-size: 7pt;
+    font-weight: 900;
+    color: #0f172a !important;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    background: #ffffff !important;
+    z-index: 20;
+    box-shadow: inset 0 0 0 1px #0f172a;
+  }
+}
+
+/* Custom CSS media queries for invoice generation in StaffDashboard */
+@media print {
+  body:has(.printable-invoice) #root {
+    display: none !important;
+  }
+  body:has(.printable-invoice) .printable-invoice {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 15mm !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: "Inter", sans-serif !important;
+  }
+}
+
+/* Smooth completed badge color pulse animation */
+@keyframes smoothColorPulse {
+  0%, 100% {
+    background-color: rgba(220, 252, 231, 1);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+    transform: scale(1);
+  }
+  50% {
+    background-color: rgba(187, 247, 208, 1);
+    box-shadow: 0 0 12px 4px rgba(34, 197, 94, 0.2);
+    transform: scale(1.03);
+  }
+}
+
+@keyframes smoothColorPulseDark {
+  0%, 100% {
+    background-color: rgba(20, 83, 45, 0.3);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.2);
+    transform: scale(1);
+  }
+  50% {
+    background-color: rgba(20, 83, 45, 0.65);
+    box-shadow: 0 0 12px 4px rgba(34, 197, 94, 0.35);
+    transform: scale(1.03);
+  }
+}
+
+.animate-completed-pulse {
+  animation: smoothColorPulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.dark .animate-completed-pulse {
+  animation: smoothColorPulseDark 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Kanban Card Styling & Staggered Reveal Transitions */
+.kanban-card {
+  position: relative;
+  border-left: 4px solid #1e51dd !important;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+              opacity 0.25s ease, 
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), 
+              background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity, box-shadow, max-height;
+  overflow: hidden;
+}
+
+.kanban-card:hover {
+  transform: translateY(-2px) scale(1.012);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.14), 0 6px 16px -4px rgba(0, 0, 0, 0.08) !important;
+  z-index: 15;
+}
+
+/* Radial Glow Behind Border Accent with Staggered Reveal Animation */
+.kanban-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 90px;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(circle at 0% 50%, rgba(30, 81, 221, 0.15), transparent 75%);
+  transition: background 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.15s, 
+              opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s,
+              height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 0;
+}
+
+.kanban-card .kanban-card-expandable {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.18s,
+              transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.1s;
+  will-change: opacity, transform;
+}
+
+.kanban-card.status-completed {
+  border-left-color: #10b981 !important;
+}
+.kanban-card.status-completed::before {
+  background: radial-gradient(circle at 0% 50%, rgba(16, 185, 129, 0.18), transparent 75%);
+}
+
+.kanban-card.status-pending {
+  border-left-color: #f59e0b !important;
+}
+.kanban-card.status-pending::before {
+  background: radial-gradient(circle at 0% 50%, rgba(245, 158, 11, 0.18), transparent 75%);
+}
+
+.kanban-card.status-processing {
+  border-left-color: #1e51dd !important;
+}
+.kanban-card.status-processing::before {
+  background: radial-gradient(circle at 0% 50%, rgba(30, 81, 221, 0.18), transparent 75%);
+}
+
+.kanban-card:hover {
+  opacity: 1;
+  transform: translateY(-3px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Fixed-aspect ratio container for signature pad within kanban-card */
+.kanban-card .signature-pad-container,
+.signature-pad-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 180px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark .kanban-card .signature-pad-container,
+.dark .signature-pad-container {
+  background-color: #0f172a;
+  border-color: #1e293b;
+}
+
+/* High-DPI Canvas Scaling within Signature Pad */
+.kanban-card .signature-pad-container canvas,
+.signature-pad-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+
+
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Make the central app container & print layouts visible */
+  .module-container, .module-container *,
+  .notary-module-container, .notary-module-container *,
+  .CentralNotaryApp-PrintArea, .CentralNotaryApp-PrintArea *,
+  .print-layout, .print-layout *,
+  .notary-print-layout, .notary-print-layout * {
+    visibility: visible;
+  }
+  
+  .module-container,
+  .notary-module-container,
+  .CentralNotaryApp-PrintArea,
+  .print-layout,
+  .notary-print-layout {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 210mm; /* A4 width */
+    min-height: 297mm; /* A4 height */
+    margin: 0 auto;
+    padding: 15mm 20mm; /* A4 standard margins */
+    font-family: 'Times New Roman', Times, Georgia, Cambria, serif !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Formal legal watermark on print layout */
+  .print-layout::before,
+  .notary-print-layout::before,
+  .CentralNotaryApp-PrintArea::before {
+    content: "GOVERNMENT OF INDIA REGISTERED NOTARY • OFFICIAL LEGAL RECORD" !important;
+    position: absolute !important;
+    top: 45% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(-30deg) !important;
+    font-family: 'Times New Roman', Times, Georgia, serif !important;
+    font-size: 22pt !important;
+    font-weight: 900 !important;
+    color: rgba(0, 0, 0, 0.08) !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+    white-space: nowrap !important;
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Hide UI controls & interactive buttons during print */
+  .module-container button,
+  .module-container input[type="button"],
+  .module-container input[type="submit"],
+  .module-container input[type="checkbox"],
+  .module-container .no-print,
+  .module-container nav,
+  .notary-module-container button,
+  .notary-module-container input[type="button"],
+  .notary-module-container input[type="submit"],
+  .notary-module-container input[type="checkbox"],
+  .notary-module-container .no-print,
+  .notary-module-container nav,
+  .CentralNotaryApp-PrintArea button,
+  .CentralNotaryApp-PrintArea .no-print,
+  .print-layout button,
+  .print-layout input,
+  .print-layout .no-print,
+  .notary-print-layout button,
+  .notary-print-layout input,
+  .notary-print-layout .no-print,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Formal legal high-contrast serif typography aesthetic for print */
+  .module-container,
+  .module-container *,
+  .notary-module-container,
+  .notary-module-container *,
+  .CentralNotaryApp-PrintArea,
+  .CentralNotaryApp-PrintArea *,
+  .print-layout,
+  .print-layout *,
+  .notary-print-layout,
+  .notary-print-layout * {
+    font-family: 'Times New Roman', Times, Georgia, Cambria, serif !important;
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+  
+  .module-container h1,
+  .module-container h2,
+  .notary-module-container h1,
+  .notary-module-container h2,
+  .CentralNotaryApp-PrintArea h2,
+  .print-layout h1,
+  .print-layout h2,
+  .notary-print-layout h1,
+  .notary-print-layout h2 {
+    text-align: center !important;
+    border-bottom: 2px solid #000000 !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 10px !important;
+    font-size: 22pt !important;
+    text-transform: uppercase !important;
+    color: #000000 !important;
+  }
+
+  .print-layout table,
+  .notary-print-layout table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin: 15px 0 !important;
+  }
+
+  .print-layout th,
+  .print-layout td,
+  .notary-print-layout th,
+  .notary-print-layout td {
+    border: 1px solid #000000 !important;
+    padding: 8px 12px !important;
+    color: #000000 !important;
+    font-size: 11pt !important;
+  }
+
+  .print-layout .certificate-border,
+  .notary-print-layout .certificate-border {
+    border: 4px double #000000 !important;
+    padding: 15mm !important;
+    margin: 0 !important;
+  }
+}
+
+/* Global Mobile Responsive Fixes */
+html, body {
+  max-width: 100vw;
+}
+
+img, video, iframe, canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Resizable Status Column Header (.admin-order-table-th-status) styling */
+.admin-order-table-th-status {
+  resize: horizontal;
+  overflow: auto;
+  position: relative;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-order-table-th-status:hover {
+  border-right-color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.06);
+}
+
+.admin-order-table-th-status:active,
+.admin-order-table-th-status:focus-within {
+  border-right-color: #2563eb !important;
+  border-right-width: 3px !important;
+  box-shadow: inset -3px 0 0 0 #2563eb;
+}
+
+.admin-order-table-th-status::-webkit-resizer {
+  background-color: #3b82f6;
+  border-radius: 2px;
+  outline: 2px solid #2563eb;
+}
+
+/* Drag indicator handle styling inside .admin-order-table-th-status */
+.admin-order-table-th-status .cursor-col-resize {
+  transition: all 0.2s ease;
+}
+
+.admin-order-table-th-status:hover .cursor-col-resize {
+  opacity: 1 !important;
+  background-color: #3b82f6 !important;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  width: 3px !important;
+}
+
+.admin-order-table-th-status:active .cursor-col-resize {
+  opacity: 1 !important;
+  background-color: #2563eb !important;
+  box-shadow: 0 0 12px rgba(37, 99, 235, 0.9);
+  width: 4px !important;
+}
+
+/* SLA Timer Indicator Column & Pulse Amber Alert */
+.admin-order-table-th-sla {
+  white-space: nowrap;
+  user-select: none;
+}
+
+@keyframes sla-pulse-amber {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6), 0 0 12px rgba(245, 158, 11, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.15), 0 0 20px rgba(245, 158, 11, 0.7);
+  }
+}
+
+.animate-sla-amber {
+  animation: sla-pulse-amber 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Strict A4 / 20mm Print Rules for Order Certificates & Invoices */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 20mm !important; /* Explicit 20mm standard A4 page margins */
+  }
+
+  .order-certificate-container {
+    width: 100% !important;
+    max-width: 170mm !important;
+    min-height: 257mm !important;
+    aspect-ratio: 210 / 297 !important;
+    margin: 0 auto !important;
+    padding: 8mm !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: 2px solid #0f172a !important;
+    page-break-inside: avoid !important;
+    page-break-after: always !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    text-rendering: optimizeLegibility !important;
+    font-smooth: always !important;
+  }
+
+  #logo-component {
+    max-height: 60px !important;
+    height: auto !important;
+    width: auto !important;
+    aspect-ratio: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    page-break-inside: avoid !important;
+  }
+
+  #logo-component img {
+    max-height: 50px !important;
+    max-width: 180px !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    aspect-ratio: auto !important;
+    image-rendering: -webkit-optimize-contrast !important;
+    image-rendering: crisp-edges !important;
+  }
+}
+
+
+

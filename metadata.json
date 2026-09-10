@@ -1,0 +1,11 @@
+{
+  "name": "Amit Online Services",
+  "description": "Professional portal for Translation, Typing, and Online Applications, managed securely by Google Sheets and verification systems.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

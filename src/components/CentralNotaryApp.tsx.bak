@@ -1,0 +1,699 @@
+import React, { useState } from "react";
+import { Check, Upload, FileSearch, ArrowRight, ArrowLeft, CreditCard, Edit3, MapPin, Phone, Mail, FileText, Stamp, Navigation, User, Briefcase, FileSignature, Download, Info, CheckSquare } from "lucide-react";
+import { toast } from "sonner";
+
+interface NotaryFormData {
+  // Step 1: Application Form
+  nameEn: string;
+  nameHi: string;
+  guardianType: "Father" | "Husband" | "";
+  guardianNameEn: string;
+  guardianNameHi: string;
+  dob: string;
+  gender: string;
+  category: "GEN" | "OBC" | "SC" | "ST" | "";
+  pwbd: "Yes" | "No" | "";
+  pan: string;
+  
+  // Step 2: Address
+  residenceLine1: string; residenceLine2: string; residenceLine3: string;
+  residencePin: string; residenceState: string; residenceDistrict: string;
+  officeLine1: string; officeLine2: string; officeLine3: string;
+  officePin: string; officeState: string; officeDistrict: string;
+  mobile: string; email: string;
+
+  // Step 3: Qualifications
+  education: string;
+  barEnrolment: string;
+  enrolmentDate: string;
+  yearsOfPractice: string;
+  itrAssessee: "Yes" | "No" | "";
+
+  // Step 4: Declaration
+  currentPracticeArea: string;
+  desiredPracticeArea: string;
+}
+
+const INITIAL_FORM: NotaryFormData = {
+  nameEn: "", nameHi: "", guardianType: "", guardianNameEn: "", guardianNameHi: "",
+  dob: "", gender: "", category: "", pwbd: "", pan: "",
+  residenceLine1: "", residenceLine2: "", residenceLine3: "", residencePin: "", residenceState: "", residenceDistrict: "",
+  officeLine1: "", officeLine2: "", officeLine3: "", officePin: "", officeState: "", officeDistrict: "",
+  mobile: "", email: "", education: "", barEnrolment: "", enrolmentDate: "", yearsOfPractice: "", itrAssessee: "",
+  currentPracticeArea: "", desiredPracticeArea: ""
+};
+
+export const CentralNotaryApp = ({ user }: { user?: any }) => {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState<NotaryFormData>(INITIAL_FORM);
+  const [documents, setDocuments] = useState<Record<string, File | null>>({});
+  const [isProcessingOcr, setIsProcessingOcr] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  
+  // Tab state for Form vs Dashboard
+  const [activeTab, setActiveTab] = useState<"application" | "dashboard">("application");
+
+  const updateData = (field: keyof NotaryFormData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleFileChange = (key: string, file: File | null) => {
+    if (!file) {
+      setDocuments(prev => ({ ...prev, [key]: null }));
+      return;
+    }
+
+    const isImage = ["photo", "signature"].includes(key);
+    
+    // File validations
+    if (isImage) {
+      if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) {
+        toast.error("Images must be JPG or PNG");
+        return;
+      }
+      if (file.size < 25 * 1024 || file.size > 100 * 1024) {
+        toast.error("Image size must be between 25KB and 100KB");
+        return;
+      }
+    } else {
+      if (file.type !== "application/pdf") {
+        toast.error("Document must be a PDF");
+        return;
+      }
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("PDF size must be under 2MB");
+        return;
+      }
+    }
+
+    setDocuments(prev => ({ ...prev, [key]: file }));
+  };
+
+  const calculatePrice = () => {
+    const st = (formData.residenceState || "").toLowerCase().trim();
+    const ci = (formData.residenceDistrict || "").toLowerCase().trim();
+    if (st === "gujarat") {
+      if (ci === "surat") return 1000;
+      return 1500;
+    }
+    return 2000;
+  };
+
+  const runOcrAndTranslation = async () => {
+    setIsProcessingOcr(true);
+    const toastId = toast.loading("Uploading securely. Triggering AI OCR and English-to-Hindi translation...");
+    
+    // Simulating OCR extraction and Hindi translation
+    try {
+      await new Promise(r => setTimeout(r, 2500));
+      
+      // Sample auto-translation logic pre-filling state
+      if (!formData.nameHi && formData.nameEn) {
+        setFormData(prev => ({ ...prev, nameHi: prev.nameEn + " (Hindi)" })); // placeholder
+      }
+      if (!formData.guardianNameHi && formData.guardianNameEn) {
+        setFormData(prev => ({ ...prev, guardianNameHi: prev.guardianNameEn + " (Hindi)" })); // placeholder
+      }
+      
+      toast.success("AI Scan complete. Please review the extracted data and translations carefully.", { id: toastId });
+      setStep(6);
+    } catch (error) {
+      toast.error("Failed to process documents.", { id: toastId });
+    } finally {
+      setIsProcessingOcr(false);
+    }
+  };
+
+  const handlePayment = async () => {
+    const toastId = toast.loading("Initializing secure payment gateway...");
+    await new Promise(r => setTimeout(r, 1500));
+    toast.success("Application Submitted successfully! Track it in your Dashboard.", { id: toastId });
+    
+    setStep(1);
+    setFormData(INITIAL_FORM);
+    setDocuments({});
+    setIsVerified(false);
+    setActiveTab("dashboard");
+  };
+
+  // Dummy Dashboard Data
+  const dashboardOrders = [
+    {
+      id: "AOS-NOTARY-8942",
+      date: "2024-05-10",
+      status: "ARN Generated",
+      receiptUrl: "https://example.com/receipt.pdf"
+    },
+    {
+      id: "AOS-NOTARY-1123",
+      date: "2023-11-22",
+      status: "Completed",
+      receiptUrl: "https://example.com/receipt2.pdf"
+    }
+  ];
+
+  return (
+    <div className="max-w-5xl mx-auto p-4 md:p-8 animate-fadeIn">
+      {/* Header */}
+      <div className="mb-10 text-center">
+        <div className="inline-flex items-center justify-center p-4 bg-blue-50 text-[#0056D2] rounded-full mb-4 shadow-inner">
+          <Stamp size={40} />
+        </div>
+        <h1 className="text-3xl font-black text-slate-800 tracking-tight">Central Notary Public Portal</h1>
+        <p className="text-slate-500 font-medium mt-2 max-w-xl mx-auto">AI-Powered Registration, Document Review, & Translation for Advocates</p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex justify-center mb-8">
+        <div className="bg-slate-100 p-1.5 rounded-2xl flex gap-2">
+          <button 
+            onClick={() => setActiveTab("application")}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === "application" ? "bg-white text-[#0056D2] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            New Application
+          </button>
+          <button 
+            onClick={() => setActiveTab("dashboard")}
+            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === "dashboard" ? "bg-white text-[#0056D2] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+          >
+            Advocate Dashboard
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "dashboard" && (
+        <div className="bg-white rounded-[24px] shadow-xl border border-slate-100 p-6 md:p-8">
+          <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+            <Briefcase className="text-[#0056D2]" /> My Applications
+          </h2>
+          <div className="space-y-4">
+            {dashboardOrders.map(order => (
+              <div key={order.id} className="flex flex-col md:flex-row items-center justify-between p-4 md:p-6 bg-slate-50 rounded-2xl border border-slate-200 gap-4">
+                <div>
+                  <h3 className="font-black text-slate-800 text-lg">{order.id}</h3>
+                  <p className="text-xs text-slate-500 font-bold mt-1">Submitted: {order.date}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`px-3 py-1 text-xs font-black rounded-lg uppercase tracking-wider ${
+                    order.status === 'Completed' ? 'bg-green-100 text-green-700' :
+                    order.status === 'ARN Generated' ? 'bg-blue-100 text-blue-700' :
+                    'bg-amber-100 text-amber-700'
+                  }`}>
+                    {order.status}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {(order.status === "ARN Generated" || order.status === "Completed") ? (
+                     <a href={order.receiptUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-white font-bold text-sm rounded-xl hover:bg-slate-700 transition-colors">
+                       <Download size={14} /> Receipt
+                     </a>
+                  ) : (
+                     <button disabled className="flex items-center gap-2 px-4 py-2 bg-slate-200 text-slate-400 font-bold text-sm rounded-xl cursor-not-allowed">
+                       Processing...
+                     </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === "application" && (
+        <>
+          {/* Progress Stepper */}
+          <div className="flex items-center justify-between relative mb-12 max-w-4xl mx-auto hidden md:flex">
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 rounded-full z-0"></div>
+            <div 
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-[#0056D2] rounded-full z-0 transition-all duration-500"
+              style={{ width: `${((step - 1) / 6) * 100}%` }}
+            ></div>
+            
+            {[
+              { num: 1, label: "Form I" },
+              { num: 2, label: "Address" },
+              { num: 3, label: "Qualifications" },
+              { num: 4, label: "Declaration" },
+              { num: 5, label: "Uploads" },
+              { num: 6, label: "Final Preview" },
+              { num: 7, label: "Payment" }
+            ].map((s) => (
+              <div key={s.num} className="relative z-10 flex flex-col items-center gap-2">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm transition-colors ${step >= s.num ? "bg-[#0056D2] text-white shadow-lg shadow-blue-500/30" : "bg-slate-100 text-slate-400 border-2 border-slate-200"}`}>
+                  {step > s.num ? <Check size={18} /> : s.num}
+                </div>
+                <span className={`text-[10px] uppercase font-bold absolute -bottom-6 whitespace-nowrap ${step >= s.num ? "text-[#0056D2]" : "text-slate-400"}`}>{s.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Main Card */}
+          <div className="bg-white rounded-[24px] shadow-xl border border-slate-100 p-6 md:p-8">
+            
+            {step === 1 && (
+              <div className="animate-fadeIn space-y-6">
+                <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <User className="text-[#0056D2]" /> Step 1: Application Form (Form I)
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name (English)</label>
+                    <input type="text" value={formData.nameEn} onChange={(e) => updateData("nameEn", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" placeholder="As per records" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Full Name (Hindi)</label>
+                    <input type="text" value={formData.nameHi} onChange={(e) => updateData("nameHi", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" placeholder="हिंदी में नाम" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Guardian Type</label>
+                    <div className="flex gap-4 h-12 items-center">
+                      <label className="flex items-center gap-2 cursor-pointer font-semibold text-sm">
+                        <input type="radio" name="gtype" checked={formData.guardianType === "Father"} onChange={() => updateData("guardianType", "Father")} className="accent-[#0056D2] w-4 h-4" /> Father
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer font-semibold text-sm">
+                        <input type="radio" name="gtype" checked={formData.guardianType === "Husband"} onChange={() => updateData("guardianType", "Husband")} className="accent-[#0056D2] w-4 h-4" /> Husband
+                      </label>
+                    </div>
+                  </div>
+                  <div className="space-y-2 hidden md:block"></div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Guardian Name (English)</label>
+                    <input type="text" value={formData.guardianNameEn} onChange={(e) => updateData("guardianNameEn", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Guardian Name (Hindi)</label>
+                    <input type="text" value={formData.guardianNameHi} onChange={(e) => updateData("guardianNameHi", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Date of Birth</label>
+                    <input type="date" value={formData.dob} onChange={(e) => updateData("dob", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Gender</label>
+                    <select value={formData.gender} onChange={(e) => updateData("gender", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]">
+                      <option value="">Select Option</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Transgender">Transgender</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Category</label>
+                    <select value={formData.category} onChange={(e) => updateData("category", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]">
+                      <option value="">Select Option</option>
+                      <option value="GEN">General</option>
+                      <option value="OBC">OBC</option>
+                      <option value="SC">SC</option>
+                      <option value="ST">ST</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Are you a PwBD candidate?</label>
+                    <select value={formData.pwbd} onChange={(e) => updateData("pwbd", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]">
+                      <option value="">Select Option</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">PAN Number</label>
+                    <input type="text" value={formData.pan} onChange={(e) => updateData("pan", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 uppercase focus:outline-none focus:border-[#0056D2]" placeholder="ABCDE1234F" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="animate-fadeIn space-y-6">
+                <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <MapPin className="text-[#0056D2]" /> Step 2: Address & Contact
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Residence */}
+                  <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 className="font-black text-sm text-slate-700">Residence Address</h3>
+                    <input placeholder="Line 1 (Flat, Building)" value={formData.residenceLine1} onChange={(e) => updateData("residenceLine1", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                    <input placeholder="Line 2 (Street, Area)" value={formData.residenceLine2} onChange={(e) => updateData("residenceLine2", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                    <input placeholder="Line 3 (Landmark)" value={formData.residenceLine3} onChange={(e) => updateData("residenceLine3", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input placeholder="State" value={formData.residenceState} onChange={(e) => updateData("residenceState", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                      <input placeholder="District" value={formData.residenceDistrict} onChange={(e) => updateData("residenceDistrict", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                      <input placeholder="PIN Code" value={formData.residencePin} onChange={(e) => updateData("residencePin", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none col-span-2" />
+                    </div>
+                  </div>
+                  
+                  {/* Office */}
+                  <div className="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 className="font-black text-sm text-slate-700">Office Address</h3>
+                    <input placeholder="Line 1 (Office No, Building)" value={formData.officeLine1} onChange={(e) => updateData("officeLine1", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                    <input placeholder="Line 2 (Street, Area)" value={formData.officeLine2} onChange={(e) => updateData("officeLine2", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                    <input placeholder="Line 3 (Landmark)" value={formData.officeLine3} onChange={(e) => updateData("officeLine3", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <input placeholder="State" value={formData.officeState} onChange={(e) => updateData("officeState", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                      <input placeholder="District" value={formData.officeDistrict} onChange={(e) => updateData("officeDistrict", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none" />
+                      <input placeholder="PIN Code" value={formData.officePin} onChange={(e) => updateData("officePin", e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-4 py-2.5 font-semibold text-sm focus:border-[#0056D2] outline-none col-span-2" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Phone size={14}/> Mobile Number</label>
+                    <input type="tel" value={formData.mobile} onChange={(e) => updateData("mobile", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" placeholder="+91" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1"><Mail size={14}/> Email Address</label>
+                    <input type="email" value={formData.email} onChange={(e) => updateData("email", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" placeholder="advocate@example.com" />
+                  </div>
+                </div>
+                
+                {formData.residenceState && formData.residenceDistrict && (
+                   <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm font-semibold text-blue-800 flex justify-between items-center">
+                     <span>Location-based Processing Fee Preview:</span>
+                     <span className="text-lg font-black">₹{calculatePrice()}</span>
+                   </div>
+                )}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="animate-fadeIn space-y-6">
+                <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <Briefcase className="text-[#0056D2]" /> Step 3: Qualifications
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Educational Qualifications</label>
+                    <input type="text" value={formData.education} onChange={(e) => updateData("education", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" placeholder="B.A. LL.B, LL.M" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1 justify-between">
+                      Bar Council Enrolment
+                      <span className="text-[9px] bg-slate-200 px-1.5 py-0.5 rounded text-slate-500">Format: STATE/0000/YYYY</span>
+                    </label>
+                    <input type="text" value={formData.barEnrolment} onChange={(e) => updateData("barEnrolment", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 uppercase focus:outline-none focus:border-[#0056D2]" placeholder="G/1234/2010" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Date of Enrolment</label>
+                    <input type="date" value={formData.enrolmentDate} onChange={(e) => updateData("enrolmentDate", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Years of Practice</label>
+                    <input type="number" value={formData.yearsOfPractice} onChange={(e) => updateData("yearsOfPractice", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]" placeholder="e.g. 12" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Are you an ITR Assessee?</label>
+                    <select value={formData.itrAssessee} onChange={(e) => updateData("itrAssessee", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2]">
+                      <option value="">Select Option</option>
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="animate-fadeIn space-y-6">
+                <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <FileSignature className="text-[#0056D2]" /> Step 4: Declaration
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Current Practice Area</label>
+                    <textarea value={formData.currentPracticeArea} onChange={(e) => updateData("currentPracticeArea", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2] h-24" placeholder="e.g. District & Sessions Court, Surat" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Desired Area of Practice as Notary</label>
+                    <textarea value={formData.desiredPracticeArea} onChange={(e) => updateData("desiredPracticeArea", e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 font-semibold text-slate-800 focus:outline-none focus:border-[#0056D2] h-24" placeholder="e.g. Surat District" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="animate-fadeIn space-y-6">
+                <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2 border-b border-slate-100 pb-4">
+                  <Upload className="text-[#0056D2]" /> Step 5: Upload Documents
+                </h2>
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-xl mb-6">
+                  <h3 className="font-bold text-blue-900 flex items-center gap-2"><Info size={16}/> Strict Guidelines</h3>
+                  <ul className="text-[11px] text-blue-800 list-disc pl-5 mt-1 space-y-0.5 font-semibold">
+                    <li>Photo & Signature: JPG/PNG/JPEG, 25KB - 100KB only.</li>
+                    <li>All other documents: PDF only, max 2MB.</li>
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { key: 'photo', label: 'Passport Photo (JPG/PNG)' },
+                    { key: 'signature', label: 'Signature (JPG/PNG)' },
+                    { key: 'dobProof', label: 'DOB Proof (PDF)' },
+                    { key: 'panCard', label: 'PAN Card (PDF)' },
+                    { key: 'gradDegree', label: 'Graduation Degree (PDF)' },
+                    { key: 'lawDegree', label: 'Law Degree (PDF)' },
+                    { key: 'barCert', label: 'Bar Council Certificate (PDF)' }
+                  ].map(doc => (
+                    <div key={doc.key} className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 uppercase">{doc.label}</label>
+                      <div className="relative">
+                        <input type="file" onChange={(e) => handleFileChange(doc.key, e.target.files?.[0] || null)} className="hidden" id={`file-${doc.key}`} accept={["photo", "signature"].includes(doc.key) ? ".jpg,.jpeg,.png" : ".pdf"} />
+                        <label htmlFor={`file-${doc.key}`} className={`flex items-center justify-between w-full border-2 border-dashed ${documents[doc.key] ? "border-[#0056D2] bg-blue-50" : "border-slate-300 bg-slate-50 hover:bg-slate-100"} rounded-xl px-4 py-3 cursor-pointer transition-colors`}>
+                          <span className={`text-xs font-bold truncate ${documents[doc.key] ? "text-[#0056D2]" : "text-slate-600"}`}>
+                            {documents[doc.key] ? documents[doc.key]?.name : "Choose File..."}
+                          </span>
+                          <Upload size={16} className={documents[doc.key] ? "text-[#0056D2]" : "text-slate-400"} />
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {formData.pwbd === "Yes" && (
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 uppercase">Disability Certificate (PDF)</label>
+                      <div className="relative">
+                        <input type="file" onChange={(e) => handleFileChange('pwbdCert', e.target.files?.[0] || null)} className="hidden" id="file-pwbdCert" accept=".pdf" />
+                        <label htmlFor="file-pwbdCert" className={`flex items-center justify-between w-full border-2 border-dashed ${documents['pwbdCert'] ? "border-[#0056D2] bg-blue-50" : "border-slate-300 bg-slate-50 hover:bg-slate-100"} rounded-xl px-4 py-3 cursor-pointer transition-colors`}>
+                          <span className={`text-xs font-bold truncate ${documents['pwbdCert'] ? "text-[#0056D2]" : "text-slate-600"}`}>{documents['pwbdCert'] ? documents['pwbdCert']?.name : "Choose File..."}</span>
+                          <Upload size={16} className={documents['pwbdCert'] ? "text-[#0056D2]" : "text-slate-400"} />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                  {formData.itrAssessee === "Yes" && (
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-500 uppercase">ITR Return (PDF)</label>
+                      <div className="relative">
+                        <input type="file" onChange={(e) => handleFileChange('itr', e.target.files?.[0] || null)} className="hidden" id="file-itr" accept=".pdf" />
+                        <label htmlFor="file-itr" className={`flex items-center justify-between w-full border-2 border-dashed ${documents['itr'] ? "border-[#0056D2] bg-blue-50" : "border-slate-300 bg-slate-50 hover:bg-slate-100"} rounded-xl px-4 py-3 cursor-pointer transition-colors`}>
+                          <span className={`text-xs font-bold truncate ${documents['itr'] ? "text-[#0056D2]" : "text-slate-600"}`}>{documents['itr'] ? documents['itr']?.name : "Choose File..."}</span>
+                          <Upload size={16} className={documents['itr'] ? "text-[#0056D2]" : "text-slate-400"} />
+                        </label>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {step === 6 && (
+              <div className="animate-fadeIn space-y-8">
+                <div className="border-b border-slate-200 pb-4">
+                  <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <CheckSquare className="text-[#0056D2]" /> Step 6: Final Preview & Customer Consent
+                  </h2>
+                  <p className="text-sm text-slate-500 mt-1">Please review all information below carefully. Click 'Edit' to make any changes.</p>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Section 1 Preview */}
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+                      <h3 className="font-bold text-slate-800 flex items-center gap-2"><User size={18} className="text-[#0056D2]"/> Form I Details</h3>
+                      <button onClick={() => setStep(1)} className="text-sm font-bold text-[#0056D2] hover:text-blue-800 flex items-center gap-1"><Edit3 size={14}/> Edit</button>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Name (English)</span><span className="font-semibold text-slate-800">{formData.nameEn || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Name (Hindi)</span><span className="font-semibold text-slate-800">{formData.nameHi || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Guardian ({formData.guardianType || "N/A"}) - English</span><span className="font-semibold text-slate-800">{formData.guardianNameEn || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Guardian (Hindi)</span><span className="font-semibold text-slate-800">{formData.guardianNameHi || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Date of Birth</span><span className="font-semibold text-slate-800">{formData.dob || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Gender</span><span className="font-semibold text-slate-800">{formData.gender || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Category</span><span className="font-semibold text-slate-800">{formData.category || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">PwBD</span><span className="font-semibold text-slate-800">{formData.pwbd || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">PAN</span><span className="font-semibold text-slate-800 uppercase">{formData.pan || "-"}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Section 2 Preview */}
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+                      <h3 className="font-bold text-slate-800 flex items-center gap-2"><MapPin size={18} className="text-[#0056D2]"/> Address & Contact</h3>
+                      <button onClick={() => setStep(2)} className="text-sm font-bold text-[#0056D2] hover:text-blue-800 flex items-center gap-1"><Edit3 size={14}/> Edit</button>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Residence</span><span className="font-semibold text-slate-800">{[formData.residenceLine1, formData.residenceLine2, formData.residenceLine3].filter(Boolean).join(", ") || "-"} <br/>{formData.residenceDistrict}, {formData.residenceState} - {formData.residencePin}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Office</span><span className="font-semibold text-slate-800">{[formData.officeLine1, formData.officeLine2, formData.officeLine3].filter(Boolean).join(", ") || "-"} <br/>{formData.officeDistrict}, {formData.officeState} - {formData.officePin}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Mobile</span><span className="font-semibold text-slate-800">{formData.mobile || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Email</span><span className="font-semibold text-slate-800">{formData.email || "-"}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Section 3 Preview */}
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+                      <h3 className="font-bold text-slate-800 flex items-center gap-2"><Briefcase size={18} className="text-[#0056D2]"/> Qualifications</h3>
+                      <button onClick={() => setStep(3)} className="text-sm font-bold text-[#0056D2] hover:text-blue-800 flex items-center gap-1"><Edit3 size={14}/> Edit</button>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Education</span><span className="font-semibold text-slate-800">{formData.education || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Bar Enrolment</span><span className="font-semibold text-slate-800 uppercase">{formData.barEnrolment || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Date of Enrolment</span><span className="font-semibold text-slate-800">{formData.enrolmentDate || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Years of Practice</span><span className="font-semibold text-slate-800">{formData.yearsOfPractice || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">ITR Assessee</span><span className="font-semibold text-slate-800">{formData.itrAssessee || "-"}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Section 4 Preview */}
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+                      <h3 className="font-bold text-slate-800 flex items-center gap-2"><FileSignature size={18} className="text-[#0056D2]"/> Declaration</h3>
+                      <button onClick={() => setStep(4)} className="text-sm font-bold text-[#0056D2] hover:text-blue-800 flex items-center gap-1"><Edit3 size={14}/> Edit</button>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Current Practice Area</span><span className="font-semibold text-slate-800">{formData.currentPracticeArea || "-"}</span></div>
+                      <div><span className="text-slate-500 block text-xs font-bold uppercase">Desired Practice Area</span><span className="font-semibold text-slate-800">{formData.desiredPracticeArea || "-"}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Section 5 Preview */}
+                  <div className="bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden">
+                    <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-200">
+                      <h3 className="font-bold text-slate-800 flex items-center gap-2"><Upload size={18} className="text-[#0056D2]"/> Uploaded Documents</h3>
+                      <button onClick={() => setStep(5)} className="text-sm font-bold text-[#0056D2] hover:text-blue-800 flex items-center gap-1"><Edit3 size={14}/> Edit</button>
+                    </div>
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm">
+                       {Object.entries({
+                         'Passport Photo': documents.photo,
+                         'Signature': documents.signature,
+                         'DOB Proof': documents.dobProof,
+                         'PAN Card': documents.panCard,
+                         'Graduation Degree': documents.gradDegree,
+                         'Law Degree': documents.lawDegree,
+                         'Bar Council Certificate': documents.barCert,
+                         'PwBD Certificate': documents.pwbdCert,
+                         'ITR': documents.itr
+                       }).map(([label, file]) => (
+                         file ? (
+                           <div key={label} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-100">
+                             <span className="text-slate-600 font-semibold">{label}</span>
+                             <span className="text-[#0056D2] font-bold text-xs truncate max-w-[120px]" title={file.name}>{file.name}</span>
+                           </div>
+                         ) : null
+                       ))}
+                       {Object.keys(documents).filter(k => documents[k]).length === 0 && (
+                         <div className="col-span-full text-slate-400 italic">No documents uploaded.</div>
+                       )}
+                    </div>
+                  </div>
+
+                  {/* Consent Checkbox */}
+                  <div className="bg-[#0056D2]/5 border border-[#0056D2]/20 p-6 rounded-2xl mt-8">
+                    <label className="flex items-start gap-4 cursor-pointer group">
+                      <div className="mt-0.5">
+                        <input 
+                          type="checkbox" 
+                          checked={isVerified}
+                          onChange={(e) => setIsVerified(e.target.checked)}
+                          className="w-5 h-5 accent-[#0056D2] rounded cursor-pointer"
+                        />
+                      </div>
+                      <p className="text-sm font-bold text-slate-800 leading-relaxed select-none group-hover:text-[#0056D2] transition-colors">
+                        I hereby declare and verify that all the information provided above and documents uploaded are true, correct, and complete to the best of my knowledge and belief. I understand that any false information may lead to rejection of my application.
+                      </p>
+                    </label>
+                  </div>
+
+                </div>
+              </div>
+            )}
+
+            {step === 7 && (
+              <div className="animate-fadeIn max-w-md mx-auto">
+                <div className="bg-slate-900 text-white p-8 rounded-3xl shadow-2xl shadow-slate-900/20 text-center">
+                  <CreditCard size={48} className="mx-auto text-blue-400 mb-4" />
+                  <h3 className="text-xl font-bold mb-2">Final Checkout</h3>
+                  <p className="text-slate-400 text-sm font-semibold mb-8">Notary Application Processing Fee</p>
+                  
+                  <div className="bg-slate-800/50 rounded-2xl p-6 mb-8 text-left border border-slate-700 space-y-4">
+                    <div className="flex justify-between items-center pb-4 border-b border-slate-700/50">
+                      <span className="text-slate-400 text-sm font-bold">Location Tier</span>
+                      <span className="text-white font-bold">{formData.residenceState || "N/A"} ({formData.residenceDistrict || "N/A"})</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-400 text-sm font-bold">Total Payable</span>
+                      <span className="text-3xl font-black text-white">₹{calculatePrice()}</span>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={handlePayment}
+                    className="w-full py-4 bg-[#0056D2] hover:bg-blue-600 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-blue-900/30 active:scale-[0.98]"
+                  >
+                    Pay & Submit Securely
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Controls */}
+            {step < 7 && (
+              <div className="flex justify-between items-center mt-10 pt-6 border-t border-slate-100">
+                <button 
+                  disabled={step === 1 || isProcessingOcr}
+                  onClick={() => setStep(step - 1)}
+                  className="flex items-center gap-2 px-6 py-3 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-colors disabled:opacity-0"
+                >
+                  <ArrowLeft size={16} /> Back
+                </button>
+                
+                {step < 5 && (
+                  <button 
+                    onClick={() => setStep(step + 1)}
+                    className="flex items-center gap-2 px-8 py-3 bg-[#0056D2] text-white font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50"
+                  >
+                    Continue <ArrowRight size={16} />
+                  </button>
+                )}
+                
+                {step === 5 && (
+                  <button 
+                    onClick={runOcrAndTranslation}
+                    disabled={isProcessingOcr}
+                    className="flex items-center gap-2 px-8 py-3 bg-[#0056D2] text-white font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-colors shadow-md disabled:opacity-75"
+                  >
+                    {isProcessingOcr ? "Scanning..." : "Upload & Scan Docs"} <FileSearch size={16} />
+                  </button>
+                )}
+
+                {step === 6 && (
+                  <button 
+                    onClick={() => setStep(7)}
+                    disabled={!isVerified}
+                    className="flex items-center gap-2 px-8 py-3 bg-[#0056D2] text-white font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Proceed to Payment <ArrowRight size={16} />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
